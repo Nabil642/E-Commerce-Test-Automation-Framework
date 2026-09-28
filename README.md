@@ -56,5 +56,4 @@ To use Postman's app instead, import both files from `postman/`, pick the enviro
 ## If a locator fails
 The demo site is updated from time to time. Run `npx playwright codegen https://practicesoftwaretesting.com` and copy the new locator into the matching page object.
 
-## Ethics note
-These are public practice sites. Load tests here are intentionally tiny. Do not increase the load.
+
