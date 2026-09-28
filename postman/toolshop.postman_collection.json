@@ -1,0 +1,293 @@
+{
+  "info": {
+    "_postman_id": "76556df0-7237-4981-816a-65b2ad9b78b4",
+    "name": "Toolshop API Tests",
+    "description": "API checks for the Practice Software Testing demo API. Run with an environment that defines baseUrl, email and password.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "GET products - page 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Responds in under 2 seconds', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test('Returns a paginated list', () => {",
+                  "  pm.expect(json.data).to.be.an('array').that.is.not.empty;",
+                  "  pm.expect(json).to.have.property('current_page', 1);",
+                  "  pm.expect(json).to.have.property('total');",
+                  "});",
+                  "pm.test('Every product has an id, a name and a positive price', () => {",
+                  "  json.data.forEach(p => {",
+                  "    pm.expect(p).to.have.property('id');",
+                  "    pm.expect(p.name).to.be.a('string').and.not.empty;",
+                  "    pm.expect(Number(p.price)).to.be.above(0);",
+                  "  });",
+                  "});",
+                  "",
+                  "// keep the first product id so the next request can use it",
+                  "pm.collectionVariables.set('productId', json.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products?page=1"
+          }
+        },
+        {
+          "name": "GET product by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returned product matches the requested id', () => {",
+                  "  pm.expect(json.id).to.eql(pm.collectionVariables.get('productId'));",
+                  "  pm.expect(json.name).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        },
+        {
+          "name": "GET search - hammer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Search returns at least one hammer', () => {",
+                  "  pm.expect(json.data).to.be.an('array').that.is.not.empty;",
+                  "  const names = json.data.map(p => p.name.toLowerCase());",
+                  "  pm.expect(names.some(n => n.includes('hammer'))).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/search?q=hammer"
+          }
+        },
+        {
+          "name": "GET search - nonsense term",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No products are returned', () => pm.expect(json.data).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/search?q=zzzxxyy"
+          }
+        },
+        {
+          "name": "GET brands",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Brands is a non-empty list with names', () => {",
+                  "  pm.expect(json).to.be.an('array').that.is.not.empty;",
+                  "  pm.expect(json[0]).to.have.property('name');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/brands"
+          }
+        },
+        {
+          "name": "GET categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Categories is a non-empty list', () => pm.expect(json).to.be.an('array').that.is.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/categories"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "POST login - valid customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Access token is returned', () => {",
+                  "  pm.expect(json.access_token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(json.token_type).to.match(/bearer/i);",
+                  "});",
+                  "pm.collectionVariables.set('token', json.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/users/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET my profile - with token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Profile belongs to the logged in user', () => {",
+                  "  pm.expect(json.email).to.eql(pm.environment.get('email'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/users/me"
+          }
+        },
+        {
+          "name": "GET my profile - no token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Anonymous request is rejected with 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/users/me"
+          }
+        },
+        {
+          "name": "POST login - wrong password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Wrong password gives 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Error message is present', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('No token leaks in the error response', () => pm.expect(pm.response.text()).to.not.include('access_token'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/users/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"definitely-not-the-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
