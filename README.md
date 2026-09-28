@@ -21,7 +21,7 @@ jmeter/        test plan, CSV data, run scripts
 docs/          test plan
 ```
 
-## Setup (about 5 minutes)
+## Setup
 Requirements: Node.js 18+, Java 8+ and [Apache JMeter 5.6.x](https://jmeter.apache.org/download_jmeter.cgi) on your PATH.
 
 ```bash
